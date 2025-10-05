@@ -1,2 +1,32 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+
+# Sphinx documentation
+docs/_build/
+
+# PyBuilder
+.pybuilder/
+target/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IPython
+profile_default/
+ipython_config.py
+
+# Environments
 .env
 .venv
+env/
+venv/
+ENV/
+
+.vscode/
+
+# Ruff stuff:
+.ruff_cache/
+
+# Cursor
+.cursorignore
+.cursorindexingignore
