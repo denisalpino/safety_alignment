@@ -4,8 +4,11 @@
 ![Project Status](https://img.shields.io/badge/status-active%20development-orange?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-non--commercial%20license-8A2BE2?style=for-the-badge)
 ![Python Version](https://img.shields.io/badge/Python_3.10%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)
-![License](https://img.shields.io/badge/PyTorch-14354C?style=for-the-badge&logo=pytorch&logoColor=orange)
-![License](https://img.shields.io/badge/HuggingFace-14354C?style=for-the-badge&logo=huggingface&logoColor=yellow)
+
+![GPU](https://img.shields.io/badge/RTX_3060-14354C?style=for-the-badge&logo=nvidia&logoColor=green)
+![PyTorch](https://img.shields.io/badge/PyTorch-14354C?style=for-the-badge&logo=pytorch&logoColor=orange)
+![HuggingFace](https://img.shields.io/badge/HuggingFace-14354C?style=for-the-badge&logo=huggingface&logoColor=yellow)
+
 
 ## 📖 Overview
 
