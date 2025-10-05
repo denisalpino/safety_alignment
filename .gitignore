@@ -30,3 +30,9 @@ ENV/
 # Cursor
 .cursorignore
 .cursorindexingignore
+
+# Data Files
+*.pkl
+*.pickle
+*.pt
+*.npy
