@@ -96,3 +96,22 @@ To optimize activation extraction, we implemented a batched inference process de
 Storing activations from multiple layers for all batches is memory-intensive. Since PyTorch returns the hidden state values by default, subtracting the previous layer's output is necessary to isolate the current layer's activations, which can lead to Out-Of-Memory (OOM) errors.
 
 **To mitigate this, the dataset was reduced to 10,000 prompts, totaling approximately 263,000 tokens.**
+
+## 🔍 Model Analysis
+
+During the interpretation of the trained model, various visualizations were constructed. According to Anthropic's work, special attention should be paid to the distribution of neuron activation frequencies. Thus, several clusters of neurons are distinguished by density:
+- Ultra-low density - those whose activation frequency is extremely rare and does not exceed
+- High density - those that activate too often. Such neurons cannot be interpreted
+- Normal density - “good” neurons that activate the right number of times
+
+Sometimes, these clusters can overlap due to a high degree of regularization,  but they can be distinguished by other statistics, such as:
+- the ratio of decoder weights to encoder weights
+- encoder bias
+
+Below is a three-dimensional visualization based on these statistics:
+
+![Distribution of neurons](docs/neuro_dist.gif)
+
+By selecting specific neurons using three-dimensional visualization, we can study the most representative tokens. To do this, we used the BM25 relevance algorithm, because despite its numerical simplicity, it remains SoTA:
+
+![Example of the most relevent tokens per neuron](docs/relevant_tokens.png)
