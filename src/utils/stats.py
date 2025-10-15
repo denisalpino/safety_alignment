@@ -243,3 +243,90 @@ def get_top_tokens(
             return [(token, score / max_score) for token, score in top_tokens]
 
     return top_tokens
+
+
+def pretty_scale(
+    activations: Union[List, np.ndarray, torch.Tensor],
+    neuron_idx: int,
+    min_val: float = 0.1,
+    max_val: float = 0.9
+):
+    """
+    Normalize non-zero activations of a specific neuron to a specified range while preserving zeros.
+
+    This function processes activations for a given neuron, keeping zero values as zero
+    and normalizing non-zero values to the range [min_val, max_val]. All non-zero values
+    are assumed to be positive; negative values will raise an exception.
+
+    Parameters
+    ----------
+    activations : Union[List, numpy.ndarray, torch.Tensor]
+        2D array of activations with shape (n_samples, n_neurons)
+    neuron_idx : int
+        Index of the neuron to normalize
+    min_val : float, optional
+        Minimum value of the normalized range (default: 0.1)
+    max_val : float, optional
+        Maximum value of the normalized range (default: 0.9)
+
+    Returns
+    -------
+    numpy.ndarray
+        Normalized activations for the specified neuron, where:
+        - Zero values remain zero
+        - Non-zero values are scaled to [min_val, max_val]
+
+    Raises
+    ------
+    ValueError
+        If activations contain negative values
+        If min_val >= max_val
+        If neuron_idx is out of bounds
+
+    Examples
+    --------
+    >>> activations = np.array([[0.0, 1.0, 2.0], [0.5, 0.0, 3.0]])
+    >>> pretty_scale(activations, neuron_idx=0)
+    array([0.1, 0.5])  # 0.0→0.0, 0.5→0.5 (normalized between 0.1 and 0.9)
+    """
+    # Input validation
+    if min_val >= max_val:
+        raise ValueError("min_val must be less than max_val")
+
+    # Convert to nump array if needed
+    if isinstance(activations, (torch.Tensor, list)):
+        activations = np.array(activations)
+
+    if neuron_idx < 0 or neuron_idx >= activations.shape[1]:
+        raise ValueError(f"neuron_idx {neuron_idx} is out of bounds for activations shape {activations.shape}")
+
+    # Extract specific neuron activations
+    neuron = activations[:, neuron_idx]
+
+    # Check for negative values
+    if np.any(neuron < 0):
+        raise ValueError("Activations contain negative values - only non-negative values are supported")
+
+    # Create mask for non-zero values
+    non_zero_mask = neuron > 0
+
+    # If no non-zero values, return zeros
+    if not np.any(non_zero_mask):
+        return neuron
+
+    # Extract non-zero values
+    non_zero_vals = neuron[non_zero_mask]
+
+    # Handle case where all non-zero values are the same
+    if non_zero_vals.min() == non_zero_vals.max():
+        normalized_non_zero = np.full_like(non_zero_vals, (min_val + max_val) / 2)
+    else:
+        # Normalize non-zero values to [min_val, max_val]
+        normalized_non_zero = (non_zero_vals - non_zero_vals.min()) / (non_zero_vals.max() - non_zero_vals.min())
+        normalized_non_zero = normalized_non_zero * (max_val - min_val) + min_val
+
+    # Create result array and assign normalized values
+    result = np.zeros_like(neuron)
+    result[non_zero_mask] = normalized_non_zero
+
+    return result
