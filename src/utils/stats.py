@@ -330,3 +330,79 @@ def pretty_scale(
     result[non_zero_mask] = normalized_non_zero
 
     return result
+
+
+def get_top_prompts(
+    prompts: List[List[str]],
+    activations: Union[List[float], np.ndarray, torch.Tensor],
+    top_k: int = 5
+) -> List[Tuple[List[str], List[float]]]:
+    """
+    Identify top prompts with highest average activation values.
+
+    Processes tokenized prompts and their corresponding activation values to find
+    the prompts with the highest mean activation. Handles alignment between
+    prompts and activations by considering only complete prompt-activation pairs.
+
+    Parameters
+    ----------
+    prompts : List[List[str]]
+        List of tokenized prompts where each prompt is a list of string tokens
+    activations : Union[List[float], np.ndarray, torch.Tensor]
+        Activation values corresponding to all tokens across prompts.
+        Can be Python list, NumPy array, or PyTorch tensor
+    top_k : int, optional
+        Number of top prompts to return, by default 5
+
+    Returns
+    -------
+    List[Tuple[List[str], List[float]]]
+        List of tuples containing (prompt_tokens, prompt_activations) for top prompts,
+        sorted by descending mean activation
+
+    Examples
+    --------
+    >>> prompts = [["hello", "world"], ["test", "token", "here"]]
+    >>> activations = [0.1, 0.8, 0.3, 0.9, 0.4]
+    >>> top_prompts = get_top_prompts(prompts, activations, top_k=1)
+    >>> print(top_prompts[0][0])  # Prompt tokens
+    ['test', 'token', 'here']
+    >>> print(top_prompts[0][1])  # Corresponding activations
+    [0.3, 0.9, 0.4]
+    """
+    # Convert activations to numpy array for consistent processing
+    if isinstance(activations, torch.Tensor):
+        activations_np = activations.cpu().numpy()
+    elif isinstance(activations, list):
+        activations_np = np.array(activations)
+    else:
+        activations_np = activations
+
+    # Find valid prompts that have complete activation coverage
+    total_tokens = 0
+    valid_prompts = []
+
+    for prompt in prompts:
+        if total_tokens + len(prompt) <= len(activations_np):
+            valid_prompts.append(prompt)
+            total_tokens += len(prompt)
+        else:
+            break  # Stop when activations are exhausted
+
+    if not valid_prompts:
+        return []
+
+    # Split activations according to prompt boundaries
+    splits = np.cumsum([len(p) for p in valid_prompts[:-1]])
+    prompt_activations = np.split(activations_np[:total_tokens], splits)
+
+    # Calculate mean activation for each prompt and select top-K
+    means = [np.mean(arr) for arr in prompt_activations]
+    top_indices = np.argsort(means)[-top_k:][::-1]  # Descending order
+
+    # Compile results with original prompts and their activations
+    result = []
+    for i in top_indices:
+        result.append((valid_prompts[i], prompt_activations[i].tolist()))
+
+    return result
